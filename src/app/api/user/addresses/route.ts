@@ -15,8 +15,8 @@ export async function GET() {
     const decoded = jwt.verify(token, JWT_SECRET) as { userId: number };
 
     // Get the customer ID
-    const [customerData]: any = await db.query(
-      "SELECT Customer_ID FROM Customer WHERE userId = ?",
+    const { rows: customerData }: any = await db.query(
+      `SELECT "Customer_ID" FROM "Customer" WHERE "userId" = $1`,
       [decoded.userId],
     );
     if (!customerData.length) return NextResponse.json({ addresses: [] });
@@ -24,11 +24,11 @@ export async function GET() {
     const customerId = customerData[0].Customer_ID;
 
     // Get all addresses linked to this customer
-    const [rows]: any = await db.query(
-      `SELECT da.Address_ID, da.Address_First_Line, da.Address_Second_Line, da.City, da.Pincode
-       FROM Delivery_Address da
-       JOIN Customer_Address ca ON da.Address_ID = ca.Address_ID
-       WHERE ca.Customer_ID = ?`,
+    const { rows }: any = await db.query(
+      `SELECT da."Address_ID", da."Address_First_Line", da."Address_Second_Line", da."City", da."Pincode"
+       FROM "Delivery_Address" da
+       JOIN "Customer_Address" ca ON da."Address_ID" = ca."Address_ID"
+       WHERE ca."Customer_ID" = $1`,
       [customerId],
     );
 
@@ -57,8 +57,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 });
 
     // Get customer ID
-    const [customerData]: any = await db.query(
-      "SELECT Customer_ID FROM Customer WHERE userId = ?",
+    const { rows: customerData }: any = await db.query(
+      `SELECT "Customer_ID" FROM "Customer" WHERE "userId" = $1`,
       [decoded.userId],
     );
     if (!customerData.length)
@@ -70,19 +70,20 @@ export async function POST(req: Request) {
     const customerId = customerData[0].Customer_ID;
 
     // Insert into Delivery_Address
-    const [addr]: any = await db.query(
-      `INSERT INTO Delivery_Address
-       (Address_First_Line, Address_Second_Line, City, Pincode)
-       VALUES (?, ?, ?, ?)`,
+    const { rows: addrRows }: any = await db.query(
+      `INSERT INTO "Delivery_Address"
+       ("Address_First_Line", "Address_Second_Line", "City", "Pincode")
+       VALUES ($1, $2, $3, $4)
+       RETURNING "Address_ID"`,
       [address1, address2 || null, city, pincode],
     );
 
-    const newAddressId = addr.insertId;
+    const newAddressId = addrRows[0].Address_ID;
 
     // Link to Customer_Address
     await db.query(
-      `INSERT INTO Customer_Address (Customer_ID, Address_ID)
-       VALUES (?, ?)`,
+      `INSERT INTO "Customer_Address" ("Customer_ID", "Address_ID")
+       VALUES ($1, $2)`,
       [customerId, newAddressId],
     );
 

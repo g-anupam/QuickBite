@@ -34,8 +34,8 @@ export async function PUT(
     }
 
     // Fetch driver details
-    const [driverRows] = await db.query(
-      "SELECT Driver_ID FROM Driver WHERE userId = ?",
+    const { rows: driverRows } = await db.query(
+      `SELECT "Driver_ID" FROM "Driver" WHERE "userId" = $1`,
       [decoded.userId],
     );
 
@@ -46,8 +46,8 @@ export async function PUT(
     const driverId = driverRows[0].Driver_ID;
 
     // Verify order exists & is available
-    const [orderRows] = await db.query(
-      "SELECT Status, Driver_ID FROM Customer_Order WHERE Order_ID = ?",
+    const { rows: orderRows } = await db.query(
+      `SELECT "Status", "Driver_ID" FROM "Customer_Order" WHERE "Order_ID" = $1`,
       [orderId],
     );
 
@@ -66,9 +66,9 @@ export async function PUT(
 
     // Assign driver + update status
     await db.query(
-      `UPDATE Customer_Order
-       SET Driver_ID = ?, Status = 'Out for Delivery'
-       WHERE Order_ID = ?`,
+      `UPDATE "Customer_Order"
+       SET "Driver_ID" = $1, "Status" = 'Out for Delivery'
+       WHERE "Order_ID" = $2`,
       [driverId, orderId],
     );
 

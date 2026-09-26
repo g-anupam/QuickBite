@@ -25,8 +25,8 @@ export async function GET() {
     }
 
     // Find this restaurant by userId
-    const [restaurantRows] = await db.query(
-      "SELECT Restaurant_ID FROM Restaurant WHERE userId = ?",
+    const { rows: restaurantRows } = await db.query(
+      `SELECT "Restaurant_ID" FROM "Restaurant" WHERE "userId" = $1`,
       [decoded.userId],
     );
 
@@ -41,28 +41,28 @@ export async function GET() {
       .Restaurant_ID;
 
     // Fetch all orders for this restaurant
-    const [orderRows] = await db.query(
+    const { rows: orderRows } = await db.query(
       `SELECT
-         co.Order_ID,
-         co.Status,
-         co.Customer_ID,
-         co.Address_ID,
-         co.Payment_ID,
-         p.Amount,
-         p.Status AS Payment_Status,
-         p.Payment_Method,
-         da.Address_First_line,
-         da.Address_Second_line,
-         da.City,
-         da.Pincode,
-         u.name AS Customer_Name
-       FROM Customer_Order co
-       JOIN Customer c ON co.Customer_ID = c.Customer_ID
-       JOIN Users u ON c.userId = u.id
-       LEFT JOIN Payment p ON co.Payment_ID = p.Payment_ID
-       LEFT JOIN Delivery_Address da ON co.Address_ID = da.Address_ID
-       WHERE co.Restaurant_ID = ?
-       ORDER BY co.Order_ID DESC`,
+         co."Order_ID",
+         co."Status",
+         co."Customer_ID",
+         co."Address_ID",
+         co."Payment_ID",
+         p."Amount",
+         p."Status" AS "Payment_Status",
+         p."Payment_Method",
+         da."Address_First_Line" AS "Address_First_line",
+         da."Address_Second_Line" AS "Address_Second_line",
+         da."City",
+         da."Pincode",
+         u."name" AS "Customer_Name"
+       FROM "Customer_Order" co
+       JOIN "Customer" c ON co."Customer_ID" = c."Customer_ID"
+       JOIN "Users" u ON c."userId" = u."id"
+       LEFT JOIN "Payment" p ON co."Payment_ID" = p."Payment_ID"
+       LEFT JOIN "Delivery_Address" da ON co."Address_ID" = da."Address_ID"
+       WHERE co."Restaurant_ID" = $1
+       ORDER BY co."Order_ID" DESC`,
       [restaurantId],
     );
 

@@ -17,12 +17,12 @@ export async function GET(
       );
     }
 
-    const [rows] = await db.query(
-      `SELECT Coupon_ID, Discount, Expiry
-       FROM Coupon
-       WHERE Restaurant_ID = ?
-         AND (Expiry IS NULL OR Expiry >= CURDATE())
-       ORDER BY Discount DESC`,
+    const { rows } = await db.query(
+      `SELECT "Coupon_ID", "Discount", "Expiry"
+       FROM "Coupon"
+       WHERE "Restaurant_ID" = $1
+         AND ("Expiry" IS NULL OR "Expiry" >= CURRENT_DATE)
+       ORDER BY "Discount" DESC`,
       [restaurantId],
     );
 

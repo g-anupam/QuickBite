@@ -22,8 +22,8 @@ export async function GET() {
     }
 
     // Fetch Driver_ID
-    const [rows]: any = await db.query(
-      "SELECT Driver_ID FROM Driver WHERE userId = ?",
+    const { rows }: any = await db.query(
+      `SELECT "Driver_ID" FROM "Driver" WHERE "userId" = $1`,
       [decoded.userId],
     );
 
@@ -33,26 +33,30 @@ export async function GET() {
     const driverId = rows[0].Driver_ID;
 
     // Lifetime earnings
-    const [[{ lifetime }]]: any = await db.query(
+    const {
+      rows: [{ lifetime }],
+    }: any = await db.query(
       `
-      SELECT SUM(fn_driver_earning(p.Amount)) AS lifetime
-      FROM Customer_Order co
-      JOIN Payment p ON co.Payment_ID = p.Payment_ID
-      WHERE co.Driver_ID = ?
-      AND co.Status = 'Delivered'
+      SELECT SUM(fn_driver_earning(p."Amount")) AS lifetime
+      FROM "Customer_Order" co
+      JOIN "Payment" p ON co."Payment_ID" = p."Payment_ID"
+      WHERE co."Driver_ID" = $1
+      AND co."Status" = 'Delivered'
       `,
       [driverId],
     );
 
     // Today's earnings
-    const [[{ today }]]: any = await db.query(
+    const {
+      rows: [{ today }],
+    }: any = await db.query(
       `
-      SELECT SUM(fn_driver_earning(p.Amount)) AS today
-      FROM Customer_Order co
-      JOIN Payment p ON co.Payment_ID = p.Payment_ID
-      WHERE co.Driver_ID = ?
-      AND co.Status = 'Delivered'
-      AND DATE(co.Created_At) = CURDATE();
+      SELECT SUM(fn_driver_earning(p."Amount")) AS today
+      FROM "Customer_Order" co
+      JOIN "Payment" p ON co."Payment_ID" = p."Payment_ID"
+      WHERE co."Driver_ID" = $1
+      AND co."Status" = 'Delivered'
+      AND co."Created_At"::date = CURRENT_DATE
       `,
       [driverId],
     );

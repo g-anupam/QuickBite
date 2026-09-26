@@ -1,9 +1,17 @@
-import mysql from "mysql2/promise";
+import { Pool } from "pg";
 
-export const db = mysql.createPool({
-  host: process.env.DB_HOST || "localhost",
-  port: Number(process.env.DB_PORT) || 3306,
-  user: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD || "",
-  database: process.env.DB_NAME || "Food_Delivery",
-});
+// Vercel's Postgres (Neon) integration sets DATABASE_URL (pooled) and POSTGRES_URL.
+const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+
+// Reuse one pool across hot reloads in dev and warm serverless invocations.
+const globalForDb = globalThis as unknown as { pgPool?: Pool };
+
+export const db =
+  globalForDb.pgPool ??
+  new Pool({
+    connectionString,
+    max: 5,
+    idleTimeoutMillis: 10_000,
+  });
+
+globalForDb.pgPool = db;

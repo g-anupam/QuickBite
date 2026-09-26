@@ -35,25 +35,25 @@ export async function POST(req: Request) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    connection = await db.getConnection();
-    await connection.beginTransaction();
+    connection = await db.connect();
+    await connection.query("BEGIN");
 
     let userId;
 
     // Step 1: Insert into Users table
     try {
-      const [userResult]: any = await connection.query(
-        "INSERT INTO Users (name, email, password, role) VALUES (?, ?, ?, ?)",
+      const { rows: userRows }: any = await connection.query(
+        `INSERT INTO "Users" ("name", "email", "password", "role") VALUES ($1, $2, $3, $4) RETURNING "id"`,
         [name, email, hashedPassword, role],
       );
-      userId = userResult.insertId;
+      userId = userRows[0].id;
       console.log(` [Users Table] Inserted userId = ${userId}`);
     } catch (err: any) {
       console.error(
         "❌ [Users Table] Insertion failed:",
         err.sqlMessage || err.message,
       );
-      await connection.rollback();
+      await connection.query("ROLLBACK");
       return NextResponse.json(
         {
           message: "User creation failed",
@@ -69,8 +69,8 @@ export async function POST(req: Request) {
         const { firstName, middleName, lastName, phone } = extraData;
 
         await connection.query(
-          `INSERT INTO Customer (Email, Phone_Num, First_Name, Middle_Name, Last_Name, userId)
-           VALUES (?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO "Customer" ("Email", "Phone_Num", "First_Name", "Middle_Name", "Last_Name", "userId")
+           VALUES ($1, $2, $3, $4, $5, $6)`,
           [email, phone, firstName, middleName || null, lastName, userId],
         );
         console.log(" [Customer Table] Insertion successful");
@@ -79,8 +79,8 @@ export async function POST(req: Request) {
           extraData;
 
         await connection.query(
-          `INSERT INTO Restaurant (Restaurant_Name, Email, Phone, Address_First_line, Address_Second_line, City, Pincode, userId)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO "Restaurant" ("Restaurant_Name", "Email", "Phone", "Address_First_line", "Address_Second_line", "City", "Pincode", "userId")
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
           [
             restaurantName,
             email,
@@ -108,8 +108,8 @@ export async function POST(req: Request) {
           .join(" ");
 
         await connection.query(
-          `INSERT INTO Driver (Name, Vehicle_Name, Vehicle_Number, Email, userId)
-           VALUES (?, ?, ?, ?, ?)`,
+          `INSERT INTO "Driver" ("Name", "Vehicle_Name", "Vehicle_Number", "Email", "userId")
+           VALUES ($1, $2, $3, $4, $5)`,
           [driverFullName, vehicleName, vehicleNumber, email, userId],
         );
         console.log(" [Driver Table] Insertion successful");
@@ -119,7 +119,7 @@ export async function POST(req: Request) {
         `❌ [${role.toUpperCase()} Table] Insertion failed:`,
         err.sqlMessage || err.message,
       );
-      await connection.rollback();
+      await connection.query("ROLLBACK");
       return NextResponse.json(
         {
           message: `${role.charAt(0).toUpperCase() + role.slice(1)} data insertion failed`,
@@ -130,7 +130,7 @@ export async function POST(req: Request) {
     }
 
     // Commit transaction
-    await connection.commit();
+    await connection.query("COMMIT");
     console.log(" Signup transaction committed successfully");
 
     return NextResponse.json(

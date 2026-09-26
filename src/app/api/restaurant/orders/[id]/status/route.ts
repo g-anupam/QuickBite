@@ -49,8 +49,8 @@ export async function PUT(
     }
 
     // Get this restaurant id
-    const [restaurantRows] = await db.query(
-      "SELECT Restaurant_ID FROM Restaurant WHERE userId = ?",
+    const { rows: restaurantRows } = await db.query(
+      `SELECT "Restaurant_ID" FROM "Restaurant" WHERE "userId" = $1`,
       [decoded.userId],
     );
 
@@ -65,8 +65,8 @@ export async function PUT(
       .Restaurant_ID;
 
     // Fetch current order status & ensure it belongs to this restaurant
-    const [orderRows] = await db.query(
-      "SELECT Status, Restaurant_ID FROM Customer_Order WHERE Order_ID = ?",
+    const { rows: orderRows } = await db.query(
+      `SELECT "Status", "Restaurant_ID" FROM "Customer_Order" WHERE "Order_ID" = $1`,
       [orderId],
     );
 
@@ -99,10 +99,10 @@ export async function PUT(
     }
 
     // Update status
-    await db.query("UPDATE Customer_Order SET Status = ? WHERE Order_ID = ?", [
-      newStatus,
-      orderId,
-    ]);
+    await db.query(
+      `UPDATE "Customer_Order" SET "Status" = $1 WHERE "Order_ID" = $2`,
+      [newStatus, orderId],
+    );
 
     return NextResponse.json({
       message: "Status updated",

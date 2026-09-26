@@ -3,11 +3,14 @@ QuickBite is a full Stack application for ordering food(similar to zomato and sw
 
 Checkout https://quick-bite-inky.vercel.app/
 
-This project is completed in NextJS with TypeScript, TailwindCSS and MySQL database.
-Since the MySQl db needs to be created for this project, a sample env example has been attached. Create your respective
-`env.local` file as per the example, with the respective credentials.
+This project is completed in NextJS with TypeScript, TailwindCSS and PostgreSQL database.
+A sample env example has been attached. Create your respective `.env.local` file as per the example,
+with `DATABASE_URL` pointing at your Postgres database (on Vercel, the Neon Postgres integration sets it for you).
 
-The DB schema is given in `QuickBite_schema.sql` file.
+The DB schema is given in `QuickBite_schema.sql` file. Apply it with:
+```bash
+psql "$DATABASE_URL" -f QuickBite_schema.sql
+```
 ## To run the Development Server
 ```bash
 npm i

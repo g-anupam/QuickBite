@@ -9,8 +9,8 @@ export async function GET(
   try {
     const { id } = await context.params;
 
-    const [rows] = await db.query(
-      "SELECT * FROM Restaurant WHERE Restaurant_ID = ?",
+    const { rows } = await db.query(
+      `SELECT * FROM "Restaurant" WHERE "Restaurant_ID" = $1`,
       [id],
     );
 

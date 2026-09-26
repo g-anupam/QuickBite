@@ -25,8 +25,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid rating" }, { status: 400 });
 
     // Get Customer_ID from userId
-    const [custRows]: any = await db.query(
-      "SELECT Customer_ID FROM Customer WHERE userId = ?",
+    const { rows: custRows }: any = await db.query(
+      `SELECT "Customer_ID" FROM "Customer" WHERE "userId" = $1`,
       [decoded.userId],
     );
 
@@ -39,8 +39,8 @@ export async function POST(req: Request) {
     const customerId = custRows[0].Customer_ID;
 
     // Prevent submitting again for the same order
-    const [exists]: any = await db.query(
-      "SELECT * FROM Rating WHERE Order_ID = ? AND Customer_ID = ?",
+    const { rows: exists }: any = await db.query(
+      `SELECT * FROM "Rating" WHERE "Order_ID" = $1 AND "Customer_ID" = $2`,
       [orderId, customerId],
     );
 
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
     }
 
     await db.query(
-      "INSERT INTO Rating (Rating, Restaurant_ID, Order_ID, Customer_ID) VALUES (?, ?, ?, ?)",
+      `INSERT INTO "Rating" ("Rating", "Restaurant_ID", "Order_ID", "Customer_ID") VALUES ($1, $2, $3, $4)`,
       [rating, restaurantId, orderId, customerId],
     );
 

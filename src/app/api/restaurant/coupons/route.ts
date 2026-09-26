@@ -26,8 +26,8 @@ async function getRestaurantIdFromToken(): Promise<number> {
   }
 
   // Map Users.id -> Restaurant.Restaurant_ID
-  const [rows] = await db.query(
-    "SELECT Restaurant_ID FROM Restaurant WHERE userId = ?",
+  const { rows } = await db.query(
+    `SELECT "Restaurant_ID" FROM "Restaurant" WHERE "userId" = $1`,
     [decoded.userId],
   );
 
@@ -45,11 +45,11 @@ export async function GET() {
   try {
     const restaurantId = await getRestaurantIdFromToken();
 
-    const [rows] = await db.query(
-      `SELECT Coupon_ID, Discount, Expiry
-       FROM Coupon
-       WHERE Restaurant_ID = ?
-       ORDER BY Expiry ASC`,
+    const { rows } = await db.query(
+      `SELECT "Coupon_ID", "Discount", "Expiry"
+       FROM "Coupon"
+       WHERE "Restaurant_ID" = $1
+       ORDER BY "Expiry" ASC`,
       [restaurantId],
     );
 
@@ -97,8 +97,8 @@ export async function POST(req: Request) {
     }
 
     await db.query(
-      `INSERT INTO Coupon (Discount, Expiry, Restaurant_ID)
-       VALUES (?, ?, ?)`,
+      `INSERT INTO "Coupon" ("Discount", "Expiry", "Restaurant_ID")
+       VALUES ($1, $2, $3)`,
       [discount.toFixed(2), expiry, restaurantId],
     );
 
@@ -132,15 +132,13 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: "Invalid couponId" }, { status: 400 });
     }
 
-    const [result] = await db.query(
-      `DELETE FROM Coupon
-       WHERE Coupon_ID = ? AND Restaurant_ID = ?`,
+    const result = await db.query(
+      `DELETE FROM "Coupon"
+       WHERE "Coupon_ID" = $1 AND "Restaurant_ID" = $2`,
       [couponId, restaurantId],
     );
 
-    const typedResult = result as { affectedRows?: number };
-
-    if (!typedResult.affectedRows) {
+    if (!result.rowCount) {
       return NextResponse.json(
         { error: "Coupon not found or not owned by restaurant" },
         { status: 404 },

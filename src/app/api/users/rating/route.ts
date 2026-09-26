@@ -34,8 +34,8 @@ export async function POST(req: Request) {
     }
 
     // 1. Get Customer_ID from Users.userId
-    const [custRows]: any = await db.query(
-      `SELECT Customer_ID FROM Customer WHERE userId = ?`,
+    const { rows: custRows }: any = await db.query(
+      `SELECT "Customer_ID" FROM "Customer" WHERE "userId" = $1`,
       [decoded.userId],
     );
 
@@ -49,9 +49,9 @@ export async function POST(req: Request) {
     const customerId = custRows[0].Customer_ID;
 
     // 2. Verify the order belongs to this customer
-    const [orderRows]: any = await db.query(
-      `SELECT Restaurant_ID FROM Customer_Order
-       WHERE Order_ID = ? AND Customer_ID = ?`,
+    const { rows: orderRows }: any = await db.query(
+      `SELECT "Restaurant_ID" FROM "Customer_Order"
+       WHERE "Order_ID" = $1 AND "Customer_ID" = $2`,
       [orderId, customerId],
     );
 
@@ -63,8 +63,8 @@ export async function POST(req: Request) {
 
     // 3. Insert the rating (NOW INCLUDING Customer_ID)
     await db.query(
-      `INSERT INTO Rating (Rating, Restaurant_ID, Order_ID, Customer_ID)
-       VALUES (?, ?, ?, ?)`,
+      `INSERT INTO "Rating" ("Rating", "Restaurant_ID", "Order_ID", "Customer_ID")
+       VALUES ($1, $2, $3, $4)`,
       [rating, restaurantId, orderId, customerId],
     );
 

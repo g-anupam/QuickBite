@@ -25,8 +25,8 @@ export async function GET(
     if (!decoded?.userId)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const [custRows]: any = await db.query(
-      "SELECT Customer_ID FROM Customer WHERE userId = ?",
+    const { rows: custRows }: any = await db.query(
+      `SELECT "Customer_ID" FROM "Customer" WHERE "userId" = $1`,
       [decoded.userId],
     );
 
@@ -35,8 +35,8 @@ export async function GET(
 
     const customerId = custRows[0].Customer_ID;
 
-    const [orderRows]: any = await db.query(
-      "SELECT * FROM Customer_Order WHERE Order_ID = ? AND Customer_ID = ?",
+    const { rows: orderRows }: any = await db.query(
+      `SELECT * FROM "Customer_Order" WHERE "Order_ID" = $1 AND "Customer_ID" = $2`,
       [orderId, customerId],
     );
 
@@ -45,21 +45,21 @@ export async function GET(
 
     const order = orderRows[0];
 
-    const [items]: any = await db.query(
-      `SELECT m.Menu_ID, m.Item_Name, m.Price, oc.Quantity
-       FROM Order_Contains oc
-       JOIN Menu m ON oc.Menu_ID = m.Menu_ID
-       WHERE oc.Order_ID = ?`,
+    const { rows: items }: any = await db.query(
+      `SELECT m."Menu_ID", m."Item_Name", m."Price", oc."Quantity"
+       FROM "Order_Contains" oc
+       JOIN "Menu" m ON oc."Menu_ID" = m."Menu_ID"
+       WHERE oc."Order_ID" = $1`,
       [orderId],
     );
 
-    const [paymentRows]: any = await db.query(
-      "SELECT * FROM Payment WHERE Payment_ID = ?",
+    const { rows: paymentRows }: any = await db.query(
+      `SELECT * FROM "Payment" WHERE "Payment_ID" = $1`,
       [order.Payment_ID],
     );
 
-    const [addressRows]: any = await db.query(
-      "SELECT * FROM Delivery_Address WHERE Address_ID = ?",
+    const { rows: addressRows }: any = await db.query(
+      `SELECT * FROM "Delivery_Address" WHERE "Address_ID" = $1`,
       [order.Address_ID],
     );
 

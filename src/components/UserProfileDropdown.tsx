@@ -3,16 +3,15 @@
 import { useState } from "react";
 import { MapPin, LogOut, UserCircle2 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 export default function UserProfileDropdown() {
   const [open, setOpen] = useState(false);
-  const router = useRouter();
 
   const logout = async () => {
     try {
       await fetch("/api/logout", { method: "POST" });
-      router.push("/login");
+      // Full page load so no logged-in pages stay in the client router cache
+      window.location.assign("/login");
     } catch (err) {
       console.error("Logout failed:", err);
     }

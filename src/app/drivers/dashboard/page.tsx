@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 // ------------------ STAT CARD ------------------
 const StatCard = ({ label, value, icon }: any) => (
@@ -21,13 +20,13 @@ const StatCard = ({ label, value, icon }: any) => (
 
 // ------------------ DRIVER NAVBAR ------------------
 const DriverNavbar = () => {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
 
   const logout = async () => {
     setOpen(false);
     await fetch("/api/logout", { method: "POST" });
-    router.push("/");
+    // Full page load so no logged-in pages stay in the client router cache
+    window.location.assign("/");
   };
 
   return (

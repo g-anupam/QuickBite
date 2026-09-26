@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { UserCircle2, LogOut } from "lucide-react";
 
@@ -11,13 +11,13 @@ export default function RestaurantLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
       await fetch("/api/logout", { method: "POST" });
-      router.push("/login");
+      // Full page load so no logged-in pages stay in the client router cache
+      window.location.assign("/login");
     } catch (err) {
       console.error("Logout failed:", err);
     }

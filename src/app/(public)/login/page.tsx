@@ -1,11 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
-  const router = useRouter();
-
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -43,16 +40,19 @@ export default function LoginPage() {
       setSuccessMsg("Login successful!");
       console.log("✅ User logged in:", data);
 
-      // ✅ Redirect based on role
+      // ✅ Redirect based on role.
+      // Full page load (not router.push): in production, Next prefetches navbar links
+      // while logged out and caches the middleware's redirect to /login, so a
+      // client-side push would land back on /login despite the new cookie.
       const role = data?.user?.role;
       if (role === "restaurant") {
-        router.push("/restaurants");
+        window.location.assign("/restaurants");
       } else if (role === "customer") {
-        router.push("/users/restaurants");
+        window.location.assign("/users/restaurants");
       } else if (role === "driver") {
-        router.push("/drivers/dashboard");
+        window.location.assign("/drivers/dashboard");
       } else {
-        router.push("/");
+        window.location.assign("/");
       }
     } catch (error: any) {
       console.error("❌ Login error:", error.message);

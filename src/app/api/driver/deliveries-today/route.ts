@@ -24,8 +24,8 @@ export async function GET() {
     }
 
     // STEP 1: Get Driver_ID using JWT userId
-    const [driverRows]: any = await db.query(
-      `SELECT Driver_ID FROM Driver WHERE userId = ?`,
+    const { rows: driverRows }: any = await db.query(
+      `SELECT "Driver_ID" FROM "Driver" WHERE "userId" = $1`,
       [decoded.userId],
     );
 
@@ -36,13 +36,13 @@ export async function GET() {
     const driverId = driverRows[0].Driver_ID;
 
     // STEP 2: Count delivered orders for this Driver_ID today
-    const [rows]: any = await db.query(
+    const { rows }: any = await db.query(
       `
-      SELECT COUNT(*) AS deliveriesToday
-      FROM Customer_Order
-      WHERE Driver_ID = ?
-        AND Status = 'Delivered'
-        AND DATE(Created_At) = CURDATE()
+      SELECT COUNT(*)::int AS "deliveriesToday"
+      FROM "Customer_Order"
+      WHERE "Driver_ID" = $1
+        AND "Status" = 'Delivered'
+        AND "Created_At"::date = CURRENT_DATE
       `,
       [driverId],
     );

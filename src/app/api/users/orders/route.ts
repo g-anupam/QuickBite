@@ -19,8 +19,8 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     // Get Customer_ID for this logged in user
-    const [custRows]: any = await db.query(
-      "SELECT Customer_ID FROM Customer WHERE userId = ?",
+    const { rows: custRows }: any = await db.query(
+      `SELECT "Customer_ID" FROM "Customer" WHERE "userId" = $1`,
       [decoded.userId],
     );
 
@@ -33,17 +33,17 @@ export async function GET() {
     const customerId = custRows[0].Customer_ID;
 
     // Fetch all orders + join restaurant + sum amounts
-    const [rows]: any = await db.query(
+    const { rows }: any = await db.query(
       `SELECT
-         co.Order_ID,
-         co.Status,
-         r.Restaurant_Name,
-         p.Amount
-       FROM Customer_Order co
-       JOIN Restaurant r ON co.Restaurant_ID = r.Restaurant_ID
-       JOIN Payment p ON co.Payment_ID = p.Payment_ID
-       WHERE co.Customer_ID = ?
-       ORDER BY co.Order_ID DESC`,
+         co."Order_ID",
+         co."Status",
+         r."Restaurant_Name",
+         p."Amount"
+       FROM "Customer_Order" co
+       JOIN "Restaurant" r ON co."Restaurant_ID" = r."Restaurant_ID"
+       JOIN "Payment" p ON co."Payment_ID" = p."Payment_ID"
+       WHERE co."Customer_ID" = $1
+       ORDER BY co."Order_ID" DESC`,
       [customerId],
     );
 

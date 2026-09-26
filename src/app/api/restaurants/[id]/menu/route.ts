@@ -36,8 +36,8 @@ export async function GET(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const [rows]: any = await db.query(
-      "SELECT Menu_ID, Item_Name, Item_Description, Price FROM Menu WHERE Restaurant_ID = ? ORDER BY Menu_ID DESC",
+    const { rows }: any = await db.query(
+      `SELECT "Menu_ID", "Item_Name", "Item_Description", "Price" FROM "Menu" WHERE "Restaurant_ID" = $1 ORDER BY "Menu_ID" DESC`,
       [restaurantId],
     );
 

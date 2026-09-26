@@ -24,8 +24,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing orderId" }, { status: 400 });
     }
 
-    const [driverRows]: any = await db.query(
-      "SELECT Driver_ID FROM Driver WHERE userId = ?",
+    const { rows: driverRows }: any = await db.query(
+      `SELECT "Driver_ID" FROM "Driver" WHERE "userId" = $1`,
       [decoded.userId],
     );
 
@@ -36,9 +36,9 @@ export async function POST(req: Request) {
 
     await db.query(
       `
-      UPDATE Customer_Order
-      SET Driver_ID = ?, Status = 'Out for Delivery'
-      WHERE Order_ID = ? AND Driver_ID IS NULL
+      UPDATE "Customer_Order"
+      SET "Driver_ID" = $1, "Status" = 'Out for Delivery'
+      WHERE "Order_ID" = $2 AND "Driver_ID" IS NULL
       `,
       [driverId, orderId],
     );

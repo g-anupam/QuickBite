@@ -4,18 +4,18 @@ import { db } from "@/lib/db";
 
 export async function GET() {
   try {
-    const [rows]: any = await db.query(
+    const { rows }: any = await db.query(
       `
       SELECT
-        Restaurant_ID,
-        Restaurant_Name,
-        City,
-        Pincode,
-        Email,
-        Phone,
-        fn_avg_rating(Restaurant_ID) AS avgRating
-      FROM Restaurant
-      ORDER BY Restaurant_Name ASC
+        "Restaurant_ID",
+        "Restaurant_Name",
+        "City",
+        "Pincode",
+        "Email",
+        "Phone",
+        fn_avg_rating("Restaurant_ID") AS "avgRating"
+      FROM "Restaurant"
+      ORDER BY "Restaurant_Name" ASC
       `,
     );
 

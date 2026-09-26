@@ -42,8 +42,8 @@ export async function POST(req: Request) {
     }
 
     // 1) Get Customer_ID for this user
-    const [customerRows] = await db.query(
-      "SELECT Customer_ID FROM Customer WHERE userId = ?",
+    const { rows: customerRows } = await db.query(
+      `SELECT "Customer_ID" FROM "Customer" WHERE "userId" = $1`,
       [decoded.userId],
     );
     const typedCustomerRows = customerRows as { Customer_ID: number }[];
@@ -57,12 +57,11 @@ export async function POST(req: Request) {
 
     // 2) Validate items: fetch menu entries and ensure all from same restaurant
     const menuIds = items.map((it) => it.id);
-    const placeholders = menuIds.map(() => "?").join(",");
-    const [menuRows] = await db.query(
-      `SELECT Menu_ID, Price, Restaurant_ID
-       FROM Menu
-       WHERE Menu_ID IN (${placeholders})`,
-      menuIds,
+    const { rows: menuRows } = await db.query(
+      `SELECT "Menu_ID", "Price", "Restaurant_ID"
+       FROM "Menu"
+       WHERE "Menu_ID" = ANY($1::int[])`,
+      [menuIds],
     );
     const typedMenuRows = menuRows as {
       Menu_ID: number;
@@ -113,12 +112,12 @@ export async function POST(req: Request) {
     let discountAmount = 0;
 
     if (couponId) {
-      const [couponRows] = await db.query(
-        `SELECT Coupon_ID, Discount, Expiry
-         FROM Coupon
-         WHERE Coupon_ID = ?
-           AND Restaurant_ID = ?
-           AND (Expiry IS NULL OR Expiry >= CURDATE())`,
+      const { rows: couponRows } = await db.query(
+        `SELECT "Coupon_ID", "Discount", "Expiry"
+         FROM "Coupon"
+         WHERE "Coupon_ID" = $1
+           AND "Restaurant_ID" = $2
+           AND ("Expiry" IS NULL OR "Expiry" >= CURRENT_DATE)`,
         [couponId, restaurantId],
       );
       const typedCouponRows = couponRows as {
@@ -146,29 +145,29 @@ export async function POST(req: Request) {
 
     // 5) Create Payment row (mocked, status 'Paid' for Card/UPI, 'Pending' for COD)
     const paymentStatus = paymentMethod === "COD" ? "Pending" : "Paid";
-    const [paymentResult] = await db.query(
-      `INSERT INTO Payment (Amount, Payment_Method, Date, Status)
-       VALUES (?, ?, CURDATE(), ?)`,
+    const { rows: paymentRows } = await db.query(
+      `INSERT INTO "Payment" ("Amount", "Payment_Method", "Date", "Status")
+       VALUES ($1, $2, CURRENT_DATE, $3)
+       RETURNING "Payment_ID"`,
       [totalAfterDiscount.toFixed(2), paymentMethod, paymentStatus],
     );
-    const typedPaymentResult = paymentResult as { insertId: number };
-    const paymentId = typedPaymentResult.insertId;
+    const paymentId = (paymentRows[0] as { Payment_ID: number }).Payment_ID;
 
     // 6) Create Customer_Order row (Status = Placed)
-    const [orderResult] = await db.query(
-      `INSERT INTO Customer_Order
-         (Status, Customer_ID, Address_ID, Restaurant_ID, Payment_ID, Coupon_ID)
-       VALUES (?, ?, ?, ?, ?, ?)`,
+    const { rows: orderRows } = await db.query(
+      `INSERT INTO "Customer_Order"
+         ("Status", "Customer_ID", "Address_ID", "Restaurant_ID", "Payment_ID", "Coupon_ID")
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING "Order_ID"`,
       ["Placed", customerId, addressId, restaurantId, paymentId, usedCouponId],
     );
-    const typedOrderResult = orderResult as { insertId: number };
-    const orderId = typedOrderResult.insertId;
+    const orderId = (orderRows[0] as { Order_ID: number }).Order_ID;
 
     // 7) Insert rows into Order_Contains WITH quantity
     const insertPromises = items.map((it) =>
       db.query(
-        `INSERT INTO Order_Contains (Order_ID, Menu_ID, Quantity)
-         VALUES (?, ?, ?)`,
+        `INSERT INTO "Order_Contains" ("Order_ID", "Menu_ID", "Quantity")
+         VALUES ($1, $2, $3)`,
         [orderId, it.id, it.quantity],
       ),
     );

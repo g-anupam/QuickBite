@@ -57,7 +57,9 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    // Exclude all static files + restaurant images
-    "/((?!_next|static|favicon.ico|robots.txt|sitemap.xml|restaurants).*)",
+    // Exclude Next internals and any file with an extension (public/ assets like
+    // /food-delivery.png, /restaurants/mcd.webp) so the image optimizer can fetch them
+    // without a login cookie. /restaurants dashboard pages still go through auth.
+    "/((?!_next|favicon.ico|robots.txt|sitemap.xml|.*\\.[\\w]+$).*)",
   ],
 };

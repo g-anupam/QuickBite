@@ -30,8 +30,8 @@ export async function GET(req: Request) {
     }
 
     // ✅ Fetch restaurant ID
-    const [restRows]: any = await db.query(
-      "SELECT Restaurant_ID FROM Restaurant WHERE userId = ?",
+    const { rows: restRows }: any = await db.query(
+      `SELECT "Restaurant_ID" FROM "Restaurant" WHERE "userId" = $1`,
       [decoded.userId],
     );
 
@@ -45,8 +45,8 @@ export async function GET(req: Request) {
     const restaurantId = restRows[0].Restaurant_ID;
 
     // ✅ Fetch menu items
-    const [menuRows]: any = await db.query(
-      "SELECT * FROM Menu WHERE Restaurant_ID = ? ORDER BY Menu_ID DESC",
+    const { rows: menuRows }: any = await db.query(
+      `SELECT * FROM "Menu" WHERE "Restaurant_ID" = $1 ORDER BY "Menu_ID" DESC`,
       [restaurantId],
     );
 
@@ -100,15 +100,15 @@ export async function POST(req: Request) {
       );
     }
 
-    const [restRows]: any = await db.query(
-      "SELECT Restaurant_ID FROM Restaurant WHERE userId = ?",
+    const { rows: restRows }: any = await db.query(
+      `SELECT "Restaurant_ID" FROM "Restaurant" WHERE "userId" = $1`,
       [decoded.userId],
     );
 
     const restaurantId = restRows[0].Restaurant_ID;
 
     await db.query(
-      "INSERT INTO Menu (Item_Name, Item_Description, Price, Restaurant_ID) VALUES (?, ?, ?, ?)",
+      `INSERT INTO "Menu" ("Item_Name", "Item_Description", "Price", "Restaurant_ID") VALUES ($1, $2, $3, $4)`,
       [name, description || null, price, restaurantId],
     );
 

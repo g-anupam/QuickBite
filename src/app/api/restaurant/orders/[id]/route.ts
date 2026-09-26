@@ -33,8 +33,8 @@ export async function GET(
     }
 
     // Find restaurant id for this user
-    const [restaurantRows] = await db.query(
-      "SELECT Restaurant_ID FROM Restaurant WHERE userId = ?",
+    const { rows: restaurantRows } = await db.query(
+      `SELECT "Restaurant_ID" FROM "Restaurant" WHERE "userId" = $1`,
       [decoded.userId],
     );
 
@@ -49,24 +49,24 @@ export async function GET(
       .Restaurant_ID;
 
     // Fetch the order and verify it belongs to this restaurant
-    const [orderRows] = await db.query(
+    const { rows: orderRows } = await db.query(
       `SELECT
          co.*,
-         p.Amount,
-         p.Payment_Method,
-         p.Status AS Payment_Status,
-         da.Address_First_line,
-         da.Address_Second_line,
-         da.City,
-         da.Pincode,
-         u.name AS Customer_Name,
-         u.email AS Customer_Email
-       FROM Customer_Order co
-       JOIN Customer c ON co.Customer_ID = c.Customer_ID
-       JOIN Users u ON c.userId = u.id
-       LEFT JOIN Payment p ON co.Payment_ID = p.Payment_ID
-       LEFT JOIN Delivery_Address da ON co.Address_ID = da.Address_ID
-       WHERE co.Order_ID = ? AND co.Restaurant_ID = ?`,
+         p."Amount",
+         p."Payment_Method",
+         p."Status" AS "Payment_Status",
+         da."Address_First_Line" AS "Address_First_line",
+         da."Address_Second_Line" AS "Address_Second_line",
+         da."City",
+         da."Pincode",
+         u."name" AS "Customer_Name",
+         u."email" AS "Customer_Email"
+       FROM "Customer_Order" co
+       JOIN "Customer" c ON co."Customer_ID" = c."Customer_ID"
+       JOIN "Users" u ON c."userId" = u."id"
+       LEFT JOIN "Payment" p ON co."Payment_ID" = p."Payment_ID"
+       LEFT JOIN "Delivery_Address" da ON co."Address_ID" = da."Address_ID"
+       WHERE co."Order_ID" = $1 AND co."Restaurant_ID" = $2`,
       [orderId, restaurantId],
     );
 
@@ -77,15 +77,15 @@ export async function GET(
     const order = orderRows[0];
 
     // Fetch items
-    const [itemRows] = await db.query(
+    const { rows: itemRows } = await db.query(
       `SELECT
-         m.Menu_ID,
-         m.Item_Name,
-         m.Price,
-         oc.Quantity
-       FROM Order_Contains oc
-       JOIN Menu m ON oc.Menu_ID = m.Menu_ID
-       WHERE oc.Order_ID = ?`,
+         m."Menu_ID",
+         m."Item_Name",
+         m."Price",
+         oc."Quantity"
+       FROM "Order_Contains" oc
+       JOIN "Menu" m ON oc."Menu_ID" = m."Menu_ID"
+       WHERE oc."Order_ID" = $1`,
       [orderId],
     );
 

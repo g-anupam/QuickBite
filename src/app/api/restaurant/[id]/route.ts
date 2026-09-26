@@ -51,9 +51,9 @@ export async function PUT(
     } = body;
 
     await db.query(
-      `UPDATE Restaurant
-       SET Restaurant_Name=?, Address_First_line=?, Address_Second_line=?, City=?, Pincode=?, Phone=?, Email=?
-       WHERE Restaurant_ID=? AND userId=?`,
+      `UPDATE "Restaurant"
+       SET "Restaurant_Name"=$1, "Address_First_line"=$2, "Address_Second_line"=$3, "City"=$4, "Pincode"=$5, "Phone"=$6, "Email"=$7
+       WHERE "Restaurant_ID"=$8 AND "userId"=$9`,
       [
         Restaurant_Name,
         Address_First_line,

@@ -8,8 +8,8 @@ export async function GET(
   try {
     const { orderId } = await context.params;
 
-    const [rows]: any = await db.query(
-      `SELECT Rating FROM Rating WHERE Order_ID = ?`,
+    const { rows }: any = await db.query(
+      `SELECT "Rating" FROM "Rating" WHERE "Order_ID" = $1`,
       [orderId],
     );
 

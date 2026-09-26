@@ -29,8 +29,8 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     // Order core
-    const [orderRows]: any = await db.query(
-      "SELECT * FROM Customer_Order WHERE Order_ID = ?",
+    const { rows: orderRows }: any = await db.query(
+      `SELECT * FROM "Customer_Order" WHERE "Order_ID" = $1`,
       [orderId],
     );
 
@@ -40,30 +40,30 @@ export async function GET(
     const order = orderRows[0];
 
     // Restaurant
-    const [restaurantRows]: any = await db.query(
-      "SELECT * FROM Restaurant WHERE Restaurant_ID = ?",
+    const { rows: restaurantRows }: any = await db.query(
+      `SELECT * FROM "Restaurant" WHERE "Restaurant_ID" = $1`,
       [order.Restaurant_ID],
     );
 
     // Address
-    const [addressRows]: any = await db.query(
-      "SELECT * FROM Delivery_Address WHERE Address_ID = ?",
+    const { rows: addressRows }: any = await db.query(
+      `SELECT * FROM "Delivery_Address" WHERE "Address_ID" = $1`,
       [order.Address_ID],
     );
 
     // Payment
-    const [paymentRows]: any = await db.query(
-      "SELECT * FROM Payment WHERE Payment_ID = ?",
+    const { rows: paymentRows }: any = await db.query(
+      `SELECT * FROM "Payment" WHERE "Payment_ID" = $1`,
       [order.Payment_ID],
     );
 
     // Items
-    const [items]: any = await db.query(
+    const { rows: items }: any = await db.query(
       `
-      SELECT m.Menu_ID, m.Item_Name, m.Price, oc.Quantity
-      FROM Order_Contains oc
-      JOIN Menu m ON oc.Menu_ID = m.Menu_ID
-      WHERE oc.Order_ID = ?
+      SELECT m."Menu_ID", m."Item_Name", m."Price", oc."Quantity"
+      FROM "Order_Contains" oc
+      JOIN "Menu" m ON oc."Menu_ID" = m."Menu_ID"
+      WHERE oc."Order_ID" = $1
       `,
       [orderId],
     );

@@ -29,8 +29,8 @@ export async function POST(req: Request) {
     }
 
     // Get Driver_ID
-    const [driverRows]: any = await db.query(
-      `SELECT Driver_ID FROM Driver WHERE userId = ?`,
+    const { rows: driverRows }: any = await db.query(
+      `SELECT "Driver_ID" FROM "Driver" WHERE "userId" = $1`,
       [decoded.userId],
     );
 
@@ -41,8 +41,8 @@ export async function POST(req: Request) {
     const driverId = driverRows[0].Driver_ID;
 
     // Confirm order ownership
-    const [orderRows]: any = await db.query(
-      `SELECT Order_ID, Driver_ID FROM Customer_Order WHERE Order_ID = ?`,
+    const { rows: orderRows }: any = await db.query(
+      `SELECT "Order_ID", "Driver_ID" FROM "Customer_Order" WHERE "Order_ID" = $1`,
       [orderId],
     );
 
@@ -59,9 +59,9 @@ export async function POST(req: Request) {
 
     // FINAL FIX — clean SQL update (no stray syntax!)
     await db.query(
-      `UPDATE Customer_Order
-       SET Status = 'Delivered'
-       WHERE Order_ID = ?`,
+      `UPDATE "Customer_Order"
+       SET "Status" = 'Delivered'
+       WHERE "Order_ID" = $1`,
       [orderId],
     );
 

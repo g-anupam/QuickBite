@@ -19,9 +19,10 @@ export async function POST(req: Request) {
     }
 
     // Fetch user from DB
-    const [rows]: any = await db.query("SELECT * FROM Users WHERE email = ?", [
-      email,
-    ]);
+    const { rows }: any = await db.query(
+      `SELECT * FROM "Users" WHERE "email" = $1`,
+      [email],
+    );
     const user = Array.isArray(rows) ? rows[0] : null;
 
     if (!user) {

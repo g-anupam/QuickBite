@@ -23,8 +23,8 @@ export async function GET() {
     }
 
     // Get restaurantId from user
-    const [rows]: any = await db.query(
-      "SELECT Restaurant_ID FROM Restaurant WHERE userId = ?",
+    const { rows }: any = await db.query(
+      `SELECT "Restaurant_ID" FROM "Restaurant" WHERE "userId" = $1`,
       [decoded.userId],
     );
 
@@ -38,36 +38,42 @@ export async function GET() {
     const restaurantId = rows[0].Restaurant_ID;
 
     // Lifetime earnings
-    const [[{ total_lifetime }]]: any = await db.query(
+    const {
+      rows: [{ total_lifetime }],
+    }: any = await db.query(
       `
-      SELECT SUM(fn_restaurant_earning(p.Amount)) AS total_lifetime
-      FROM Customer_Order co
-      JOIN Payment p ON co.Payment_ID = p.Payment_ID
-      WHERE co.Restaurant_ID = ?
+      SELECT SUM(fn_restaurant_earning(p."Amount")) AS total_lifetime
+      FROM "Customer_Order" co
+      JOIN "Payment" p ON co."Payment_ID" = p."Payment_ID"
+      WHERE co."Restaurant_ID" = $1
       `,
       [restaurantId],
     );
 
     // Today's earnings
-    const [[{ today_earnings }]]: any = await db.query(
+    const {
+      rows: [{ today_earnings }],
+    }: any = await db.query(
       `
-      SELECT SUM(fn_restaurant_earning(p.Amount)) AS today_earnings
-      FROM Customer_Order co
-      JOIN Payment p ON co.Payment_ID = p.Payment_ID
-      WHERE co.Restaurant_ID = ?
-      AND DATE(co.Created_At) = CURDATE();
+      SELECT SUM(fn_restaurant_earning(p."Amount")) AS today_earnings
+      FROM "Customer_Order" co
+      JOIN "Payment" p ON co."Payment_ID" = p."Payment_ID"
+      WHERE co."Restaurant_ID" = $1
+      AND co."Created_At"::date = CURRENT_DATE
       `,
       [restaurantId],
     );
 
     // Monthly earnings
-    const [[{ month_earnings }]]: any = await db.query(
+    const {
+      rows: [{ month_earnings }],
+    }: any = await db.query(
       `
-      SELECT SUM(fn_restaurant_earning(p.Amount)) AS month_earnings
-      FROM Customer_Order co
-      JOIN Payment p ON co.Payment_ID = p.Payment_ID
-      WHERE co.Restaurant_ID = ?
-      AND DATE_FORMAT(co.Created_At, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m');
+      SELECT SUM(fn_restaurant_earning(p."Amount")) AS month_earnings
+      FROM "Customer_Order" co
+      JOIN "Payment" p ON co."Payment_ID" = p."Payment_ID"
+      WHERE co."Restaurant_ID" = $1
+      AND date_trunc('month', co."Created_At") = date_trunc('month', CURRENT_TIMESTAMP)
       `,
       [restaurantId],
     );
